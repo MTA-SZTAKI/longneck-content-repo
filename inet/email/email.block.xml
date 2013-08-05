@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<block-package xmlns="urn:hu.sztaki.ilab.longneck:1.0"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+<!--
+  Processes e-mail field.
+  About valid email address: https://tools.ietf.org/html/rfc3696#section-3
+
+  Input field:
+     e-mail
+
+  Process: clean, validate (just format, but not check existence)
+
+  Output field:
+    e-mail
+ -->
+
+  <!-- Clean one email address, try ro repair frequent typos -->
+  <block id="e-mail.process">
+    <if>
+      <is-null apply-to="e-mail"/>
+      <then> <break/> </then>
+    </if>
+
+    <block-ref id="email:e-mail.process.skipnull" />
+    <output-constraints summary="Email unprocessable: invalid email address."  checkedfield="e-mail">
+      <not-null apply-to="e-mail" />
+    </output-constraints>
+  </block>
+
+  <block id="e-mail.process.skipnull">
+    <if>
+      <is-null apply-to="e-mail" />
+      <then>
+        <break/>
+      </then>
+    </if>
+
+    <block-ref id="email:e-mail.process.init" />
+    <block-ref id="email:e-mail.process.clean" />
+    <block-ref id="email.hu:e-mail.process.clean" />
+
+    <if>
+      <is-null apply-to="e-mail" />
+      <then>
+        <break/>
+      </then>
+    </if>
+
+    <set-null apply-to="e-mail-temp" />
+    <copy apply-to="e-mail-temp" from="e-mail" />
+    <if>
+      <not>
+        <entity-ref id="email:e-mail.canonized" />
+      </not>
+      <then>
+        <set-null apply-to="e-mail" />
+      </then>
+    </if>
+
+    <output-constraints summary="E-mail error: check canonized e-mail addresses." checkedfield="e-mail-temp">
+      <entity-ref id="email:e-mail.canonized">
+        <map from="e-mail-temp" to="e-mail" />
+      </entity-ref>
+    </output-constraints>
+  </block>
+
+  <block id="e-mail.process.init">
+    <set-character-case apply-to="e-mail" case="Lowercase" characters="ALL" />
+    <collapse-whitespace apply-to="e-mail" />
+    <trim apply-to="e-mail" />
+    <replace-all apply-to="e-mail" regexp="[öőó]" replacement="o" />
+    <replace-all apply-to="e-mail" regexp="[űúü]" replacement="u" />
+    <replace-all apply-to="e-mail" regexp="é" replacement="e" />
+    <replace-all apply-to="e-mail" regexp="á" replacement="a" />
+    <replace-all apply-to="e-mail" regexp="í" replacement="i" />
+    <replace-all apply-to="e-mail" regexp="ž" replacement="@" />
+    <unicode-normalize apply-to="e-mail" form="NFD" />
+    <replace-all apply-to="e-mail" regexp="\s*@+\s*" replacement="@" />
+    <replace-all apply-to="e-mail" regexp="^('?)(.*[^'])('?)$" replacement="$2" />
+    <replace-all apply-to="e-mail" regexp="[\[|\]|&lt;|&gt;|\(|\)]"	replacement="" />
+    <replace-all apply-to="e-mail" regexp="e((\-){0,1})mail:" replacement="" />
+    <replace-all apply-to="e-mail" regexp="mailto:"	replacement="" />
+    <replace-all apply-to="e-mail" regexp="^([^@]*)&amp;([^@&amp;]*)$"	replacement="$1@$2" />
+    <replace-all apply-to="e-mail" regexp="^@" replacement="" />
+    <replace-all apply-to="e-mail" regexp="@$" replacement="" />
+    <replace-all apply-to="e-mail" regexp="^.*nincs.*$" replacement="" />
+    <replace-all apply-to="e-mail" regexp="^.*nem ..ja meg.*$" replacement="" />
+    <replace-all apply-to="e-mail" regexp="^@+$" replacement="" />
+  </block>
+
+<!-- Clean email content -->
+  <block id="e-mail.process.clean">
+    <replace-all apply-to="e-mail" regexp="[&quot;\\]"	replacement="" />
+
+    <!-- This is duplicated, because next modifier (which could replace non dot character to dot near the end of the domain) would make a wrong domain   -->
+    <replace-all apply-to="e-mail" regexp="@gmail$" replacement="@gmail.com" />
+    <replace-all apply-to="e-mail" regexp="@yahoo$" replacement="@yahoo.com" />
+
+    <!--    Before top level domain part of email replace all non alphabetic character to '.'.-->
+    <replace-all apply-to="e-mail" regexp="^(.*)[^a-z\.\@]([a-z]{2,6})$" replacement="$1.$2" />
+
+    <!--    'v' or ' ' before some domain part replace to @.-->
+    <replace-all apply-to="e-mail" regexp="^([^@]*)(?:@v|v|\s|\.|-)(gmail|hotmail)([^@]*)$" replacement="$1@$2" />
+    <replace-all apply-to="e-mail" regexp="^([^@]*)(?&lt;!@|v|\s|\.|-)(gmail|hotmail)([^@]*)$" replacement="$1@$2" />
+
+    <replace-all apply-to="e-mail" regexp="\s*" replacement="" />
+
+    <replace-all apply-to="e-mail" regexp="[,;:]" replacement="." />
+    <replace-all apply-to="e-mail" regexp="\.{2,}" replacement="." />
+    <replace-all apply-to="e-mail" regexp="\.$" replacement="" />
+    <replace-all apply-to="e-mail" regexp="^\." replacement="" />
+
+    <replace-all apply-to="e-mail" regexp="\.@" replacement="@" />
+    <replace-all apply-to="e-mail" regexp="@\." replacement="@" />
+
+    <!--    In domain part of email replace all '_'to '-'.-->
+    <replace-all apply-to="e-mail" regexp="(?!.*@)_" replacement="-" />
+
+    <replace-all apply-to="e-mail" regexp="\.(.om|c.m|co.)$" replacement=".com" />
+    <replace-all apply-to="e-mail" regexp="\.c+o+m+$" replacement=".com" />
+    <replace-all apply-to="e-mail" regexp="\.con$" replacement=".com" />
+    <replace-all apply-to="e-mail" regexp="\.at.?$" replacement=".at" />
+
+    <replace-all apply-to="e-mail" regexp="(@|\.)g(\.|e|-)mail" replacement="$1gmail" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)gama?il" replacement="$1gmail" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)gm(a|i)l" replacement="$1gmail" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)gmaol" replacement="$1gmail" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)gn?ail" replacement="$1gmail" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)gmeil" replacement="$1gmail" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)gmial" replacement="$1gmail" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)qmail" replacement="$1gmail" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)gmail{2,}" replacement="$1gmail" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)gmai\.l?com$" replacement="$1gmail.com" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)gmailcom$" replacement="$1gmail.com" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)gmail(\.co|\.om)?$" replacement="$1gmail.com" />
+
+    <replace-all apply-to="e-mail" regexp="(@|\.)jah(oo|u)" replacement="$1yahoo" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)yahho" replacement="$1yahoo" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)yaho\." replacement="$1yahoo." />
+
+    <replace-all apply-to="e-mail" regexp="(@|\.)homail" replacement="$1hotmail" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)otmail" replacement="$1hotmail" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)hootmail" replacement="$1hotmail" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)hatmail" replacement="$1hotmail" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)hotmai\." replacement="$1hotmail." />
+
+    <replace-all apply-to="e-mail" regexp="\.com[^\.]+$" replacement=".com" />
+    <replace-all apply-to="e-mail" regexp="^(.)\1*$" replacement="" />
+
+    <if>
+      <is-empty apply-to="e-mail" />
+      <then>
+        <set-null apply-to="e-mail" />
+      </then>
+    </if>
+  </block>
+</block-package>

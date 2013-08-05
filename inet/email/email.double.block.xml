@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<block-package xmlns="urn:hu.sztaki.ilab.longneck:1.0"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+<!--
+  Processes e-mail field. This block is useful if there are given one or two email addresses.
+  Separate two email addresses if both are in same field.
+
+  Input field:
+     e-mail
+
+  Process: clean, validate (just format, but not check)
+
+  Output fields:
+    e-mail
+    e-mail-2
+ -->
+
+  <!--Check and clean double email -->
+  <block id="e-mail.double.process">
+    <if>
+      <is-null apply-to="e-mail" />
+      <then>
+        <break/>
+      </then>
+    </if>
+
+    <block-ref id="email.double:e-mail.double.process.skipnull" />
+
+    <output-constraints summary="E-mail error. Both e-mail addresses are not null" checkedfield="e-mail">
+      <not-null apply-to="e-mail" />
+      <not-null apply-to="e-mail-2" />
+    </output-constraints>
+  </block>
+
+  <block id="e-mail.double.process.skipnull">
+    <if>
+      <is-null apply-to="e-mail"/>
+      <then>
+        <break/>
+      </then>
+    </if>
+    <block-ref id="email.double:e-mail.double.process.init" />
+    <if>
+      <match apply-to="e-mail" regexp=".*@.*@.*" />
+      <then>
+        <block-ref id="email.double:e-mail.double.process.normalize-separator" />
+        <block-ref id="email.double:e-mail.double.process.do-separation" />
+      </then>
+    </if>
+
+    <block-ref id="email:e-mail.process.clean" />
+
+    <if>
+      <not-null apply-to="e-mail-2" />
+      <then>
+        <block-ref id="email:e-mail.process.clean">
+          <map from="e-mail-2" to="e-mail" />
+        </block-ref>
+      </then>
+    </if>
+
+    <set-null apply-to="e-mail-temp" />
+    <set-null apply-to="e-mail2-temp" />
+    <copy apply-to="e-mail-temp" from="e-mail" />
+    <copy apply-to="e-mail2-temp" from="e-mail-2" />
+
+    <if>
+      <not>
+        <entity-ref id="email:e-mail.canonized" />
+      </not>
+      <then>
+        <set-null apply-to="e-mail" />
+      </then>
+    </if>
+    <if>
+      <not>
+        <entity-ref id="email:e-mail.canonized" >
+          <map from="e-mail-2" to="e-mail" />
+        </entity-ref>
+      </not>
+      <then>
+        <set-null apply-to="e-mail-2" />
+      </then>
+    </if>
+    <if>
+      <is-null apply-to="e-mail"/>
+      <not-null apply-to="e-mail-2"/>
+      <then>
+        <copy apply-to="e-mail" from="e-mail-2" />
+        <set-null apply-to="e-mail-2" />
+      </then>
+    </if>
+
+    <output-constraints summary="E-mail error: invalid e-mail address(es)."  checkedfield="e-mail-temp">
+      <entity-ref id="email:e-mail.canonized">
+        <map from="e-mail-temp" to="e-mail" />
+      </entity-ref>
+      <entity-ref id="email:e-mail.canonized">
+        <map from="e-mail2-temp" to="e-mail" />
+      </entity-ref>
+    </output-constraints>
+  </block>
+
+  <block id="e-mail.double.process.init">
+    <set-character-case apply-to="e-mail" case="Lowercase" characters="ALL" />
+    <collapse-whitespace apply-to="e-mail" />
+    <trim apply-to="e-mail" />
+    <replace-all apply-to="e-mail" regexp="[öőó]" replacement="o" />
+    <replace-all apply-to="e-mail" regexp="[űúü]" replacement="u" />
+    <replace-all apply-to="e-mail" regexp="é" replacement="e" />
+    <replace-all apply-to="e-mail" regexp="á" replacement="a" />
+    <replace-all apply-to="e-mail" regexp="í" replacement="i" />
+    <replace-all apply-to="e-mail" regexp="ž" replacement="@" />
+    <unicode-normalize apply-to="e-mail" form="NFD" />
+    <replace-all apply-to="e-mail" regexp="\s*@+\s*" replacement="@" />
+    <replace-all apply-to="e-mail" regexp="^('?)(.*[^'])('?)$" replacement="$2" />
+    <replace-all apply-to="e-mail" regexp="[\[|\]|&lt;|&gt;|\(|\)]"	replacement="" />
+    <replace-all apply-to="e-mail" regexp="e((\-){0,1})mail:" replacement="" />
+    <replace-all apply-to="e-mail" regexp="mailto:"	replacement="" />
+    <replace-all apply-to="e-mail" regexp="^([^@]*)&amp;([^@&amp;]*)$"	replacement="$1@$2" />
+    <replace-all apply-to="e-mail" regexp="^@" replacement="" />
+    <replace-all apply-to="e-mail" regexp="@$" replacement="" />
+    <replace-all apply-to="e-mail" regexp="^.*nincs.*$" replacement="" />
+    <replace-all apply-to="e-mail" regexp="^.*nem ..ja meg.*$" replacement="" />
+    <replace-all apply-to="e-mail" regexp="^@+$" replacement="" />
+  </block>
+
+<!-- Normalize separators between double email addresses  -->
+  <block id="e-mail.double.process.normalize-separator">
+    <replace-all apply-to="e-mail" regexp="([^\s@]+@[^\s@]+)(?:[\s]+(vagy|és|and|or)[\s]+)([^\s@]+@[^\s@]+).*" replacement="$1 \\ $2" />
+    <replace-all apply-to="e-mail" regexp="([^\s@]+@[^\s@]+)\s*[,/;\s:\\]\s*([^\s@]+@[^\s@]+).*"	replacement="$1 \\ $2" />
+    <replace-all apply-to="e-mail" regexp="\s+[v-]\s+" replacement=" \\ " />
+  </block>
+
+<!-- Separate double email addresses -->
+  <block id="e-mail.double.process.do-separation">
+    <if>
+      <match apply-to="e-mail" regexp="^(.*)\s\\\s(.*)$"/>
+      <then>
+        <match-extract apply-to="e-mail" regexp="^(.*)\s\\\s(.*)$">
+          <copy apply-to="e-mail" from="$1" />
+          <copy apply-to="e-mail-2" from="$2" />
+        </match-extract>
+      </then>
+    </if>
+    <collapse-whitespace apply-to="e-mail" />
+    <collapse-whitespace apply-to="e-mail-2" />
+    <trim apply-to="e-mail" />
+    <trim apply-to="e-mail-2" />
+    <if>
+      <is-empty apply-to="e-mail"/>
+      <then>
+        <set-null apply-to="e-mail" />
+      </then>
+    </if>
+    <if>
+      <is-empty apply-to="e-mail2"/>
+      <then>
+        <set-null apply-to="e-mail2" />
+      </then>
+    </if>
+  </block>
+
+</block-package>
