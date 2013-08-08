@@ -3,13 +3,13 @@
 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
 <!--
-  Processes e-mail field.
+  Processes e-mail address fields.
   About valid email address: https://tools.ietf.org/html/rfc3696#section-3
 
   Input field:
      e-mail
 
-  Process: clean, validate (just format, but not check existence)
+  Process: clean, validate format
 
   Output field:
     e-mail
@@ -89,7 +89,7 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <replace-all apply-to="e-mail" regexp="^@+$" replacement="" />
   </block>
 
-<!-- Clean email content -->
+  <!-- Clean email content -->
   <block id="e-mail.process.clean">
     <replace-all apply-to="e-mail" regexp="[&quot;\\]"	replacement="" />
 
@@ -97,10 +97,10 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <replace-all apply-to="e-mail" regexp="@gmail$" replacement="@gmail.com" />
     <replace-all apply-to="e-mail" regexp="@yahoo$" replacement="@yahoo.com" />
 
-    <!--    Before top level domain part of email replace all non alphabetic character to '.'.-->
+    <!-- before top level domain part of email replace all non alphabetic character to '.' -->
     <replace-all apply-to="e-mail" regexp="^(.*)[^a-z\.\@]([a-z]{2,6})$" replacement="$1.$2" />
 
-    <!--    'v' or ' ' before some domain part replace to @.-->
+    <!-- 'v' or ' ' before some domain part replace to @.-->
     <replace-all apply-to="e-mail" regexp="^([^@]*)(?:@v|v|\s|\.|-)(gmail|hotmail)([^@]*)$" replacement="$1@$2" />
     <replace-all apply-to="e-mail" regexp="^([^@]*)(?&lt;!@|v|\s|\.|-)(gmail|hotmail)([^@]*)$" replacement="$1@$2" />
 
@@ -114,7 +114,7 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <replace-all apply-to="e-mail" regexp="\.@" replacement="@" />
     <replace-all apply-to="e-mail" regexp="@\." replacement="@" />
 
-    <!--    In domain part of email replace all '_'to '-'.-->
+    <!-- replace all '_' with '.' in the domain part -->
     <replace-all apply-to="e-mail" regexp="(?!.*@)_" replacement="-" />
 
     <replace-all apply-to="e-mail" regexp="\.(.om|c.m|co.)$" replacement=".com" />
@@ -155,4 +155,5 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
       </then>
     </if>
   </block>
+
 </block-package>

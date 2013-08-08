@@ -3,13 +3,13 @@
 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
 <!--
-  Processes e-mail field. This block is useful if there are given one or two email addresses.
-  Separate two email addresses if both are in same field.
+  Separates email addresses if the same field contains two of them.
+  If only one email address is present, then nothing changes.
 
   Input field:
      e-mail
 
-  Process: clean, validate (just format, but not check)
+  Process: clean, validate format
 
   Output fields:
     e-mail
@@ -126,14 +126,14 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <replace-all apply-to="e-mail" regexp="^@+$" replacement="" />
   </block>
 
-<!-- Normalize separators between double email addresses  -->
+  <!-- Normalize separators between double email addresses  -->
   <block id="e-mail.double.process.normalize-separator">
     <replace-all apply-to="e-mail" regexp="([^\s@]+@[^\s@]+)(?:[\s]+(vagy|és|and|or)[\s]+)([^\s@]+@[^\s@]+).*" replacement="$1 \\ $2" />
     <replace-all apply-to="e-mail" regexp="([^\s@]+@[^\s@]+)\s*[,/;\s:\\]\s*([^\s@]+@[^\s@]+).*"	replacement="$1 \\ $2" />
     <replace-all apply-to="e-mail" regexp="\s+[v-]\s+" replacement=" \\ " />
   </block>
 
-<!-- Separate double email addresses -->
+  <!-- Separate double email addresses -->
   <block id="e-mail.double.process.do-separation">
     <if>
       <match apply-to="e-mail" regexp="^(.*)\s\\\s(.*)$"/>
