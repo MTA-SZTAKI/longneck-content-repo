@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<block-package xmlns="urn:hu.sztaki.ilab.longneck:1.0"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+<!--
+  Process hungarian (domain) e-mail field.
+
+  Input field:
+     e-mail
+
+  Process: clean, validate format
+
+  Output field:
+    e-mail
+ -->
+
+  <!-- Clean and repair hungarian email address -->
+  <block id="e-mail.process.clean">
+    <replace-all apply-to="e-mail" regexp="[&quot;\\]" replacement="" />
+
+    <!-- This is duplicated, because next modifier (which could replace non dot character to dot near the end of the domain) would make a wrong domain   -->
+    <replace-all apply-to="e-mail" regexp="@(t-online|-online(\.hu)?|(-)?tonline(\.hu)?)$" replacement="@t-online.hu" />
+    <replace-all apply-to="e-mail" regexp="@t-email$" replacement="@t-email.hu" />
+    <replace-all apply-to="e-mail" regexp="@chello.?$" replacement="@chello.hu" />
+
+    <!--    Before top level domain part of email replace all non alphabetic character to '.'.-->
+    <replace-all apply-to="e-mail" regexp="^(.*)[^a-z\.\@]([a-z]{2,6})$" replacement="$1.$2" />
+
+    <!--    'v' or ' ' before some domain part replace to @.-->
+    <replace-all apply-to="e-mail" regexp="^([^@]*)(?:@v|v|\s|\.|-)(t-online|axelero|vipmail|citromail|freemail|indamail|invitel)([^@]*)$" replacement="$1@$2" />
+    <replace-all apply-to="e-mail" regexp="^([^@]*)(?&lt;!@|v|\s|\.|-)(t-online|axelero|vipmail|citromail|freemail|indamail|invitel)([^@]*)$" replacement="$1@$2" />
+
+    <!--    In domain part of email replace all '_'to '-'.-->
+    <replace-all apply-to="e-mail" regexp="(?!.*@)_" replacement="-" />
+
+    <replace-all apply-to="e-mail" regexp="\.[hu]$" replacement=".hu" />
+    <replace-all apply-to="e-mail" regexp="(\.)((h){1,2})((u){1,2})((\.)?)$" replacement=".hu" />
+    <replace-all apply-to="e-mail" regexp="vipmailhu$" replacement="vipmail.hu" />
+    <replace-all apply-to="e-mail" regexp="\.(gu|uh|hi|ho|ju|hz)$" replacement=".hu" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)freesart" replacement="$1freestart" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)freestar\." replacement="$1freestart." />
+    <replace-all apply-to="e-mail" regexp="freestarthu$" replacement="freestart.hu" />
+
+    <replace-all apply-to="e-mail" regexp="(@|\.)citr?om{2,}ail" replacement="$1citromail" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)ci(t|r)omail" replacement="$1citromail" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)citroma[^i]?l" replacement="$1citromail" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)citroail" replacement="$1citromail" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)citromail[^\.]+" replacement="$1citromail" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)citr.?mail" replacement="$1citromail" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)citrom(a|i)l" replacement="$1citromail" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)citromal?i\." replacement="$1citromail." />
+    <replace-all apply-to="e-mail" regexp="(@|\.)cito?rmail" replacement="$1citromail" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)co?tromail" replacement="$1citromail" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)citromail{2,}" replacement="$1citromail" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)citro?amil" replacement="$1citromail" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)(s|v)?itromail" replacement="$1citromail" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)cirtomail" replacement="$1citromail" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)citrom.al" replacement="$1citromail" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)citromail$" replacement="$1citromail.hu" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)citromail\.com$" replacement="$1citromail.hu" />
+
+    <replace-all apply-to="e-mail" regexp="@free.mail" replacement="@freemail" />
+    <replace-all apply-to="e-mail" regexp="@freema.l" replacement="@freemail" />
+    <replace-all apply-to="e-mail" regexp="@f{2,}reemail" replacement="@freemail" />
+    <replace-all apply-to="e-mail" regexp="@fr(e|i)m+ail" replacement="@freemail" />
+    <replace-all apply-to="e-mail" regexp="@fre{3,}mail" replacement="@freemail" />
+    <replace-all apply-to="e-mail" regexp="@fr{2,}e?email" replacement="@freemail" />
+    <replace-all apply-to="e-mail" regexp="@freeama?il" replacement="@freemail" />
+    <replace-all apply-to="e-mail" regexp="@freimail" replacement="@freemail" />
+    <replace-all apply-to="e-mail" regexp="@freemi?al" replacement="@freemail" />
+    <replace-all apply-to="e-mail" regexp="@freeme?il" replacement="@freemail" />
+    <replace-all apply-to="e-mail" regexp="@freemeail" replacement="@freemail" />
+    <replace-all apply-to="e-mail" regexp="@freemai\." replacement="@freemail." />
+    <replace-all apply-to="e-mail" regexp="@(f|r)eemail" replacement="@freemail" />
+    <replace-all apply-to="e-mail" regexp="@freen?ail" replacement="@freemail" />
+    <replace-all apply-to="e-mail" regexp="@freemal(i|l)" replacement="@freemail" />
+    <replace-all apply-to="e-mail" regexp="@freemail[^\.]+" replacement="@freemail" />
+    <replace-all apply-to="e-mail" regexp="@fm" replacement="@freemail.hu" />
+    <replace-all apply-to="e-mail" regexp="@freemail?$" replacement="@freemail.hu" />
+    <replace-all apply-to="e-mail" regexp="@freemail?\.lhu" replacement="@freemail.hu" />
+    <replace-all apply-to="e-mail" regexp="@freemailhu" replacement="@freemail.hu" />
+    <replace-all apply-to="e-mail" regexp="@freemail\.com" replacement="@freemail.hu" />
+
+    <replace-all apply-to="e-mail" regexp="(@|\.)(t-online|-online(\.hu)?|(-)?tonline(\.hu)?)$" replacement="$1t-online.hu" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)t-onil?ne" replacement="$1t-online" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)t-onile" replacement="$1t-online" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)t-onlo?ne" replacement="$1t-online" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)t-onlione" replacement="$1t-online" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)t-onlien?" replacement="$1t-online" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)t-om?line" replacement="$1t-online" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)t-onlina?\." replacement="$1t-online." />
+    <replace-all apply-to="e-mail" regexp="(@|\.)t(\.|_)online" replacement="$1t-online" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)(t-t)?online" replacement="$1t-online" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)t-online$" replacement="$1t-online.hu" />
+
+    <replace-all apply-to="e-mail" regexp="(@|\.)csello\." replacement="$1chello." />
+    <replace-all apply-to="e-mail" regexp="(@|\.)(c|h)ello\.hu$" replacement="$1chello.hu" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)chello.?$" replacement="$1chello.hu" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)chelo\.hu$" replacement="$1chello.hu" />
+
+    <replace-all apply-to="e-mail" regexp="(@|\.)t(e|\.)mail" replacement="$1t-email" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)t-emil" replacement="$1t-email" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)c-email" replacement="$1t-email" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)t-email$" replacement="$1t-email.hu" />
+
+    <replace-all apply-to="e-mail" regexp="(@|\.)mail\.datanet.*" replacement="$1mail.datanet.hu" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)vodafon\.hu" replacement="$1vodafone.hu" />
+
+    <replace-all apply-to="e-mail" regexp="(@|\.)homail" replacement="$1hotmail" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)otmail" replacement="$1hotmail" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)hootmail" replacement="$1hotmail" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)hatmail" replacement="$1hotmail" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)hotmai\." replacement="$1hotmail." />
+    <replace-all apply-to="e-mail" regexp="(@|\.)axalero" replacement="$1axelero" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)exernet" replacement="$1externet" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)upicimail" replacement="$1upcmail" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)vipmai\." replacement="$1vipmail." />
+    <replace-all apply-to="e-mail" regexp="(@|\.)indomail" replacement="$1indamail" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)tvnetvork" replacement="$1tvnetwork" />
+    <replace-all apply-to="e-mail" regexp="(@|\.)fiebermail" replacement="$1fibermail" />
+
+    <replace-all apply-to="e-mail" regexp="\.hu[^\.]+$" replacement=".hu" />
+
+    <if>
+      <is-empty apply-to="e-mail" />
+      <then>
+        <set-null apply-to="e-mail" />
+      </then>
+    </if>
+  </block>
+
+
+</block-package>

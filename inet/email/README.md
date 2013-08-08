@@ -1,5 +1,5 @@
-inet/email
-==========
+inet / email
+============
 Transformation rules for [emails](http://en.wikipedia.org/wiki/Email), mainly for general and localized email addresses.
 
 

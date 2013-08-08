@@ -2,11 +2,14 @@
 <entity-package xmlns="urn:hu.sztaki.ilab.longneck:1.0"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
-  <!-- Entities of email addresses. -->
+<!-- 
+  Email address entities according to RFC standards:
+  https://tools.ietf.org/html/rfc3696#section-3
+  and W3C standard http://www.w3.org/Protocols/rfc822/
+-->
 
-  <!-- e-mail -->
-  <entity id="e-mail.canonized" version="1.0">
-  <!-- check email against W3C standard http://www.w3.org/Protocols/rfc822/ -->
+  <!-- e-mail address -->
+  <entity id="e-mail.canonized">
     <when>
       <not-empty apply-to="e-mail" />
       <then>
@@ -22,15 +25,15 @@
         </match>
       </then>
     </when>
-
   </entity>
   
-  <entity id="e-mail.topleveldomain" version="1.0">
-          <lookup apply-to="topleveldomain">
-            <external-wordset column-name="word">
-              <wordset-file-source source-file="email_tld.txt" />
-            </external-wordset>
-          </lookup>
+  <!-- TLD part of email addresses -->
+  <entity id="e-mail.topleveldomain">
+    <lookup apply-to="topleveldomain">
+      <external-wordset column-name="word">
+        <wordset-file-source source-file="email_tld.txt" />
+      </external-wordset>
+    </lookup>
   </entity>  
 
 </entity-package>
